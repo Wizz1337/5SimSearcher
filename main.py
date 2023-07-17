@@ -13,7 +13,7 @@ def get_product_price(country):
             price = data[toSearch]["Price"]
             return country, price
     except:
-        return country, "NONE"
+        return country, float("inf")
 
 toSearch = input("What product you want to search? :").lower()
 
@@ -21,13 +21,22 @@ if toSearch in Products:
     with ThreadPoolExecutor() as executor:
         results = executor.map(get_product_price, Countries)
 
-    for result in results:
-        country, price = result
-        print({country: price})
-        if price != "NONE" and price < bestPrice:
-            bestPrice = price
-            bestPriceCT = country
+    min_price = float("inf")
+    bestPriceCT = []
 
-    input(f"The best price is {bestPrice}₽ from {bestPriceCT}\n")
+    for result in results:
+        if result is not None:
+            country, price = result
+            print({country: price})
+            if price < min_price:
+                min_price = price
+                bestPriceCT = [country]
+            elif price == min_price:
+                bestPriceCT.append(country)
+
+    if bestPriceCT:
+        input(f"The best price is {min_price}₽ from {', '.join(bestPriceCT)}\n")
+    else:
+        input("No results found.\n")
 else:
     input("Sorry, the product you are searching for was not found.\n")
